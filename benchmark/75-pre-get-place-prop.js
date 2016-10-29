@@ -1,8 +1,6 @@
 'use strict';
 
-var KeyPathExp = require( '../dist/keypath-umd' ),
-    kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
@@ -17,16 +15,12 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
         }
     },
 
-    kpex = new KeyPathExp( 'foo.%1.qux.%0' ),
     tkTokens = tk.getTokens( 'foo.%2.qux.%1' );
     
 module.exports = {
     name: 'Precompiled:Get:Placeholder:Property',
     maxTime: 5,
     tests: {
-        'KeyPathExp#get': function(){
-            kpex.get( data, [ 'baz', 'bar' ] );
-        },
         'tk#get-tokenized': function(){
             tk.get( data, tkTokens, 'baz', 'bar' );
         }

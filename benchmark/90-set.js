@@ -1,8 +1,6 @@
 'use strict';
 
-var KeyPathExp = require( '../dist/keypath-umd' ),
-    kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     loset = require( 'lodash.set' ),
     keypather = require( 'keypather' )(),
@@ -10,19 +8,12 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
     path = 'foo.bar.qux.baz',
     data = {},
 
-    kpex = new KeyPathExp( path ),
     tkTokens = tk.getTokens( path );
 
 module.exports = {
     name: 'Dot Notation: Set',
     maxTime: 5,
     tests: {
-        'KeyPathExp#set': function(){
-            kpex.set( data, 123 );
-        },
-        'kp': function(){
-            kp`foo.bar.qux.baz`( data, 123 );
-        },
         'tk#set': function(){
             tk.set( data, path, 123 );
         },

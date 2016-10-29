@@ -1,10 +1,8 @@
 'use strict';
 
-var kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     
-    path = '[1,2][1][0]',
     tkpath = '[1],[2]<[1]<[0]',
     tkpathSimplified = '1,2<1<0',
     data = [
@@ -18,9 +16,6 @@ module.exports = {
     name: 'Run:Get:Bracket:Index:Array',
     maxTime: 5,
     tests: {
-        'kp': function(){
-            kp`[1,2][1][0]`( data );
-        },
         'tk#get': function(){
             tk.get( data, tkpath );
         },

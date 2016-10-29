@@ -1,8 +1,6 @@
 'use strict';
 
-var KeyPathExp = require( '../dist/keypath-umd' ),
-    kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
@@ -22,9 +20,6 @@ module.exports = {
     name: 'Runtime:Get:Bracket:Property',
     maxTime: 5,
     tests: {
-        'kp': function(){
-            kp`["foo"]["bar"]["qux"]["baz"]`( data );
-        },
         'tk#get': function(){
             tk.get( data, path );
         },

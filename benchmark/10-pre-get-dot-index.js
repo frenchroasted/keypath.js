@@ -1,8 +1,6 @@
 'use strict';
 
-var KeyPathExp = require( '../dist/keypath-umd' ),
-    kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
@@ -14,8 +12,6 @@ var KeyPathExp = require( '../dist/keypath-umd' ),
             [ [ 123, 4 ], [ 456, 5 ], [ 789, 6 ] ]
         ]
     ],
-    // Enable once KeyPathExp supports this type of path
-    // kpex = new KeyPathExp( path ),
     tkTokens = tk.getTokens( path ),
     pathAry = path.split('.');
 
@@ -23,9 +19,6 @@ module.exports = {
     name: 'Precompiled:Get:Dot:Index',
     maxTime: 5,
     tests: {
-        // 'KeyPathExp#get': function(){
-        //     kpex.get( data );
-        // },
         'tk#get': function(){
             tk.get( data, tkTokens );
         },

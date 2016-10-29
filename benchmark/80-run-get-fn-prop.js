@@ -1,8 +1,6 @@
 'use strict';
 
-var KeyPathExp = require( '../dist/keypath-umd' ),
-    kp = require( '../dist/kp-umd' ),
-    PathToolkit = require( '../dist/path-toolkit-min' ),
+var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     loget = require( 'lodash.get' ),
     keypather = require( 'keypather' )(),
@@ -20,17 +18,11 @@ module.exports = {
     name: 'Runtime:Get:FunctionCall:Property',
     maxTime: 5,
     tests: {
-        'kp            ()': function(){
-            kp`foo.bar()`( data );
-        },
         'tk#get        ()': function(){
             tk.get( data, path1 );
         },
         'keypather#get ()': function(){
             keypather.get( data, path1 );
-        },
-        'kp            (arg)': function(){
-            kp`foo.baz(2)`( data );
         },
         'tk#get        (arg)': function(){
             tk.get( data, path2 );

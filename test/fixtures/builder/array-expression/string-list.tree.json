@@ -1,1 +1,0 @@
-{"type":"Program","body":[{"type":"ExpressionStatement","expression":{"type":"ArrayExpression","elements":[{"type":"Literal","raw":"\"foo\"","value":"foo"},{"type":"Literal","raw":"\"bar\"","value":"bar"}]}}]}

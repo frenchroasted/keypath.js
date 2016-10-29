@@ -1,7 +1,7 @@
 'use strict';
 
 var chai        = require( 'chai' ),
-    PathToolkit = require( '../dist/path-toolkit-umd' ),
+    PathToolkit = require( '../dist/path-toolkit' ),
     expect      = chai.expect;
 
 var ptk = new PathToolkit();
@@ -1178,7 +1178,7 @@ describe( 'PathToolkit', function(){
                 expect(function(){ptk.setContainerEvalProperty('|','..');}).to.throw(/invalid value/);
             });
             
-            it('should throw error when is in use for another purpose', function(){
+            it('should throw error when character is in use for another purpose', function(){
                 expect(function(){ptk.setSeparatorProperty(',');}).to.throw(/value already in use/);
                 expect(function(){ptk.setSeparatorProperty('*');}).to.throw(/value already in use/);
 

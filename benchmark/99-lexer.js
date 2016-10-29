@@ -1,11 +1,8 @@
 'use strict';
 
 var esprima = require( 'esprima' ),
-    Lexer = require( '../dist/lexer-umd' ),
     PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
-    
-    lexer = new Lexer(),
     
     dPath = 'foo.bar.qux.baz',
     bPath = '["foo"]["bar"]["qux"]["baz"]',
@@ -17,32 +14,23 @@ module.exports = {
     name: 'Lexing',
     maxTime: 5,
     tests: {
-        'Lexer#lex-dot': function(){
-            lexer.lex( dPath );
+        'tk#getTokens-dot': function(){
+            tk.getTokens( dPath );
         },
         'esprima#tokenize-dot': function(){
             esprima.tokenize( dPath );
         },
-        'tk#getTokens-dot': function(){
-            tk.getTokens( dPath );
-        },
-        'Lexer#lex-bracket': function(){
-            lexer.lex( bPath );
+        'tk#getTokens-bracket': function(){
+            tk.getTokens( bPath );
         },
         'esprima#tokenize-bracket': function(){
             esprima.tokenize( bPath );
         },
-        'tk#getTokens-bracket': function(){
-            tk.getTokens( bPath );
-        },
-        'Lexer#lex-paren': function(){
-            lexer.lex( pPath );
+        'tk#getTokens-paren': function(){
+            tk.getTokens( pPath );
         },
         'esprima#tokenize-paren': function(){
             esprima.tokenize( pPath );
-        },
-        'tk#getTokens-paren': function(){
-            tk.getTokens( pPath );
         }
     }
 };
