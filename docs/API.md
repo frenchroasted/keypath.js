@@ -216,10 +216,10 @@ var data = {
 };
 data.foo.bar = 1;  // valid
 data.foo.a.b.c = 2; // NOT valid because "data.foo.a" is undefined, so "data.foo.a.b" throws an error
-ptk.set(data, 'foo.bar', 1); // 1
-ptk.set(data, 'foo.a.b.c', 2); // undefined (ptk.set fails)
+ptk.set(data, 'foo.bar', 1); // true
+ptk.set(data, 'foo.a.b.c', 2); // false (ptk.set fails)
 ptk.setOptions({force: true});
-ptk.set(data, 'foo.a.b.c', 2); // 2 (ptk.set creates foo.a, foo.a.b, and foo.a.b.c, setting foo.a.b.c = 2)
+ptk.set(data, 'foo.a.b.c', 2); // true (ptk.set creates foo.a, foo.a.b, and foo.a.b.c, setting foo.a.b.c = 2)
 ```
 
 All keypaths that are valid for `get` will behave in the same way for `set`. One special case is worth noting: If the final path segment is a collection, then every property in that collection will be set to the new value.
@@ -229,7 +229,7 @@ var data = {
         bar: ['a','b','c']
     }
 };
-ptk.set(data, 'foo.bar.0,1', 'xxx'); // 'xxx'
+ptk.set(data, 'foo.bar.0,1', 'xxx'); // true
 ptk.get(data, 'foo.bar.0,1,2'); // ['xxx', 'xxx', 'c']
 ```
 
