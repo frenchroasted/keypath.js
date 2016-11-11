@@ -107,7 +107,7 @@ var data = {
 ptk.get(data, 'foo.bar.0,2<toUpperCase()'); // ['A', 'C'] - note that "toUpperCase" is a string function, not an array function
 
 // 2
-[data.foo.bar[0], data.foo.bar[1]].map(function(val){ return val.toUpperCase(); }); // ['A', 'C']
+[data.foo.bar[0], data.foo.bar[2]].map(function(val){ return val.toUpperCase(); }); // ['A', 'C']
 
 ptk.get(data, 'foo.bar.*'); // ['a', 'b', 'c']
 ptk.get(data, 'foo.bar.*<toUpperCase()'); // ['A', 'B', 'C']
