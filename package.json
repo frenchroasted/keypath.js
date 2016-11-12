@@ -1,11 +1,11 @@
 {
-  "name": "keypath-expression",
-  "description": "",
+  "name": "path-toolkit",
+  "description": "A configurable, high-speed, feature-rich object path resolver.",
   "version": "0.1.0",
-  "repository": "https://github.com/jeffrose/keypath.js.git",
-  "homepage": "https://github.com/jeffrose/keypath.js",
-  "bugs": "https://github.com/jeffrose/keypath.js/issues",
-  "author": "Jeff Rose (https://github.com/jeffrose/)",
+  "repository": "https://github.com/frenchroasted/path-toolkit.js.git",
+  "homepage": "https://github.com/frenchroasted/path-toolkit",
+  "bugs": "https://github.com/frenchroasted/path-toolkit/issues",
+  "author": "Aaron Brown (https://github.com/frenchroasted/)",
   "contributors": [
     "Aaron Brown (https://github.com/frenchroasted/)"
   ],
@@ -22,12 +22,8 @@
   ],
   "main": "index.js",
   "scripts": {
-    "trace:builder": "node --allow-natives-syntax --trace_opt --trace_deopt trace/builder.js",
-    "trace:interpreter": "node --allow-natives-syntax --trace_opt --trace_deopt trace/interpreter.js",
-    "trace:tk": "node --allow-natives-syntax --trace_opt --trace_deopt trace/tk.js"
   },
   "dependencies": {
-    
   },
   "devDependencies": {
     "babel-preset-es2015-rollup": "1.2.0",

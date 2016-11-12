@@ -60,15 +60,15 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
     .pipe( debug( { title: 'Distributing' } ) )
 );
 
-gulp.task( 'docs', () => {
-    return gulp.src( [ 'index.js', 'src/**/*.js' ] )
-        .pipe( concat( 'API.md' ) )
-        .pipe( jsdoc() )
-        .on( 'error', ( error ) => {
-            log( colors.red( 'jsdoc failed' ), error.message );
-        } )
-        .pipe( gulp.dest( 'docs' ) );
-} );
+// gulp.task( 'docs', () => {
+//     return gulp.src( [ 'index.js', 'src/**/*.js' ] )
+//         .pipe( concat( 'API.md' ) )
+//         .pipe( jsdoc() )
+//         .on( 'error', ( error ) => {
+//             log( colors.red( 'jsdoc failed' ), error.message );
+//         } )
+//         .pipe( gulp.dest( 'docs' ) );
+// } );
 
 gulp.task( 'test', [ 'dist' ], ( done ) => {
     gulp.src( [ 'dist/*.js' ] )
