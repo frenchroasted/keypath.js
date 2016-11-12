@@ -1,0 +1,31 @@
+{
+  "name": "path-toolkit",
+  "description": "A configurable, high-speed, feature-rich object path resolver.",
+  "main": "src/path-toolkit.js",
+  "authors": [
+    "Aaron Brown (https://github.com/frenchroasted/)"
+  ],
+  "license": "Apache-2.0",
+  "keywords": [
+    "dot",
+    "exp",
+    "expression",
+    "key",
+    "keys",
+    "keypath",
+    "notation",
+    "path"
+  ],
+  "homepage": "https://github.com/frenchroasted/path-toolkit",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/frenchroasted/path-toolkit.git"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
