@@ -54,7 +54,21 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
         .pipe( sourcemaps.init( { loadMaps: true } ) )
         .pipe( rename( 'path-toolkit-min.js' ) )
         .pipe( sourcemaps.write( '.' ) )
-        .pipe( gulp.dest( 'dist' ) )
+        .pipe( gulp.dest( 'dist' ) ),
+
+        rollup( {
+            entry: 'src/path-toolkit.js',
+            format: 'umd',
+            moduleName: 'PathToolkit',
+            sourceMap: true
+        } )
+        .pipe( source( 'path-toolkit.js', 'src' ) )
+        .pipe( buffer() )
+        .pipe( uglify() )
+        .pipe( sourcemaps.init( { loadMaps: true } ) )
+        .pipe( rename( 'index.js' ) )
+        .pipe( sourcemaps.write( '.' ) )
+        .pipe( gulp.dest( '.' ) )
     )
     .pipe( filter( fgrep ) )
     .pipe( debug( { title: 'Distributing' } ) )
