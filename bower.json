@@ -1,7 +1,7 @@
 {
   "name": "path-toolkit",
   "description": "A configurable, high-speed, feature-rich object path resolver.",
-  "main": "dist/path-toolkit.js",
+  "main": "index.js",
   "authors": [
     "Aaron Brown (https://github.com/frenchroasted/)"
   ],

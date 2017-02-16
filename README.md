@@ -32,7 +32,7 @@ var obj = {
 };
 ptk.get(obj, 'foo.bar.1'); // 'b'
 ptk.set(obj, 'foo.bar.0', 'x'); // true
-ptk.get(obj, 'foo.bar.0.sort().reverse().0'); // 'x'
+ptk.get(obj, 'foo.bar.sort().reverse().0'); // 'x'
 ```
 
 PathToolkit includes many more features, all documented with example code in the [API](docs/API.md). The path syntax is completely configurable, the interpreter is fast in general, and is very, very fast when processing simple property-sequence paths.

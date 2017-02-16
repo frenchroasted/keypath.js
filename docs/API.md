@@ -72,15 +72,17 @@ var data = {
         b: 'y'
     }
 };
-ptk.get(data, 'foo.bar.0,2'); // ['a', 'c']
-ptk.get(data, 'foo.bar[0,2]'); // ['a', 'c']
-ptk.get(data, 'foo.bar.a,b'); // ['z', 'y']
+ptk.get(data, 'foo.bar.0,2'); // ['a','c']
+ptk.get(data, 'foo.bar[0,2]'); // ['a','c']
+ptk.get(data, 'foo.bar.a,b'); // ['z','y']
 ```
+
+The Collection separator creates an array at that point, and generally any token that follows will be an index or some function that operates on an array. The result will either be an array or a single value, depending on the evaluated result.
 
 #### Each separator
 The "Each" separator is `<` by default. This can also be thought of as a "fork" operator. When this separator is used following an array, either an array created through the path using a Collection or an array that is evaluated from the data object, the token following `<` will be evaluated separately against each index of the array, and the results are accumulated into a new array. It is much like Array.map except that "map" executes a function against each index while the Each separator can return a property or any other PathToolkit evaluation from each index.
 
-The Collection separator creates an array at that point, and generally the following token will be an index or some function that operates on an array. The result will either be an array or a single value, depending on the evaluated result. The Each separator will create a new array as a result of applying its token to each element of the prior array, so that token should be one that operates on the element, not on the array as a whole. These Each tokens may be chained together.
+The Each separator will create a new array as a result of applying its token to each element of the prior array, so that token should be one that operates on each array element, not on the array as a whole. Multiple Each operations may be chained together.
 ```javascript
 var data = {
     foo: {
@@ -103,17 +105,17 @@ var data = {
 };
 // The following two code sections produce equivalent results:
 // 1.
-// Intermediate step: ptk.get(data, 'foo.bar.0,2'); // ['a', 'c']
-ptk.get(data, 'foo.bar.0,2<toUpperCase()'); // ['A', 'C'] - note that "toUpperCase" is a string function, not an array function
+// Intermediate step: ptk.get(data, 'foo.bar.0,2'); // ['a','c']
+ptk.get(data, 'foo.bar.0,2<toUpperCase()'); // ['A','C'] - note that "toUpperCase" is a string function, not an array function
 
 // 2
-[data.foo.bar[0], data.foo.bar[2]].map(function(val){ return val.toUpperCase(); }); // ['A', 'C']
+[data.foo.bar[0], data.foo.bar[2]].map(function(val){ return val.toUpperCase(); }); // ['A','C']
 
-ptk.get(data, 'foo.bar.*'); // ['a', 'b', 'c']
-ptk.get(data, 'foo.bar.*<toUpperCase()'); // ['A', 'B', 'C']
+ptk.get(data, 'foo.bar.*'); // ['a','b','c']
+ptk.get(data, 'foo.bar.*<toUpperCase()'); // ['A','B','C']
 
-ptk.get(data, 'people.*<id'); // [1, 2, 3]
-ptk.get(data, 'people.*<id,name'); // [ [1, 'John'], [2, 'Jane'], [3, 'Mephistopholes'] ]
+ptk.get(data, 'people.*<id'); // [1,2,3]
+ptk.get(data, 'people.*<id,name'); // [ [1,'John'], [2,'Jane'], [3,'Mephistopholes'] ]
 
 ```
 
@@ -125,7 +127,7 @@ var data = {
         bar: ['a','b','c']
     }
 };
-ptk.get(data, 'foo.bar.2,0.sort()'); // ['a', 'c']
+ptk.get(data, 'foo.bar.2,0.sort()'); // ['a','c']
 ptk.get(data, 'foo.bar.2,0.sort().0'); // 'a'
 ```
 
@@ -199,7 +201,7 @@ ptk.get(data, 'foo.@1.prop', other); // 'bar'
 ptk.get(data, 'foo{@1.prop}0', other); // 'a'
 ptk.get(data, 'foo{@1(%2)}', fn, 'x'); // 'blah'
 ```
-Use of the context placeholder is most likely to be helpful within the indirect property container (`{ }`) since that container creates a temporary context for evaluation, then returns to the original data context. In the above examples, the path `'foo.@1.prop'` will replace the original data context for the remainder of the evaluation. The net result is exactly the same as finding `other.prop` directly, except with more work and obfuscation. Within the indirect property container, though, this mechanism can be used to create data transformations or to run locally defined functions that are not native to the values.
+Use of the context placeholder is most likely to be helpful within the indirect property container (`{ }`) since that container creates a temporary context for evaluation, then returns to the original data context. In the above examples, the path `'foo.@1.prop'` will replace the original data context for the remainder of the evaluation. The net result is exactly the same as finding `other.prop` directly, except with more work and obfuscation. Within the indirect property container, though, this mechanism can be used to create data transformations or to run externally defined functions.
 
 ### set
 ```javascript
@@ -243,7 +245,7 @@ Does a seep scan through the data object, executing a `===` test on each node ag
 
 `find` returns a path that is compliant with the current options. If a keypath segment includes special characters, it will be quoted with the current "singlequote" container character, and that quote will be escaped in the segment if it appears.
 
-**Note:** Object keys are sorted in processing, so repeated calls to `find` should produce repeatable results.
+**Note:** Object keys are sorted in processing, so repeated calls to `find` should produce identical results.
 
 ```javascript
 var data = {
@@ -390,11 +392,11 @@ ptk.setSimple(false); // Disables simple path syntax. Any non-string value consi
 ptk.setSimpleOn(separator);    // enables simple path syntax
 ptk.setSimpleOff();            // disables simple path syntax; SEE NOTE BELOW
 ```
-The "separator" argument is optional. If not provided, the default separator "." will be used.
+The "separator" argument is optional. If not provided, the default property separator "." will be used.
 
-In many cases, the more advanced features offered here are not necessary and only simple, character-separated paths will be processed. In this case, it can be convenient to disable all the unnecessary special characters to avoid escaping them if they occur as property names in the paths. The "simple" option removes all special characters from the path syntax except for a single separator character. That character is "." by default, but it can be set to any other character as needed ("/", for example). Any character is allowed as long as it is only one character.
+In many cases, the more advanced PathToolkit features are not necessary and only simple, character-separated paths will be processed. It can be convenient to disable all the unnecessary special characters to avoid escaping them if they occur as property names in the paths. The "simple" option removes all special characters from the path syntax except for a single separator character. That character is "." by default, but it can be set to any other character as needed ("/", for example). Any character is allowed as long as it is only one character.
 
-**NOTE:** When "simple" mode is **disabled**, the full set of default characters will be restored. Calling `setSimpleOff()` is nearly equivalent to calling `resetOptions()` except that the "cache" and "force" options are not affected by `setSimpleOff()`. The same is true for `setSimple(false)`.
+**NOTE:** When "simple" mode is **disabled**, the full set of default characters will be restored. Calling `setSimpleOff()` is nearly equivalent to calling `resetOptions()` except that the "cache" and "force" options are not affected by `setSimpleOff()`. Also, the property separator character will be reset to the default "." character when simple mode is disabled. The same is true for `setSimple(false)`.
 
 Clears the cache to force all paths to be re-evaluated with the new path syntax.
 
@@ -464,7 +466,7 @@ ptk.setContainerProperty('^', '>'); // 'one[two]three' -> 'one^two>three'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
-Both areguments are **required**.
+Both arguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
@@ -478,7 +480,7 @@ ptk.setContainerSinglequote('|', '|'); // "one['two']three" -> "one[|two|]three"
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d"). For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
-Both areguments are **required**.
+Both arguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
@@ -492,7 +494,7 @@ ptk.setContainerDoublequote('|', '|'); // 'one["two"]three' -> 'one[|two|]three'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
-Both areguments are **required**.
+Both arguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
@@ -506,7 +508,7 @@ ptk.setContainerCall('^', '>'); // 'one.fn()' -> 'one.fn^>'
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
-Both areguments are **required**.
+Both arguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
@@ -520,7 +522,7 @@ ptk.setContainerEvalProperty('^', '>'); // 'one{two.three}four' -> 'one^two.thre
 ```
 Container characters are set in pairs. The first argument is the "opener" and the second is the "closer". In most cases, paths are easier to read if the arguments are different (e.g. "[" and "]"). If the opener and closer are different, it's also possible to nest the container ("a[b[c]]d". For cases like quotes, where the opener typically is the same as the closer, quotes cannot be nested directly.
 
-Both areguments are **required**.
+Both arguments are **required**.
 
 Removes the existing characters used for this purpose and sets the new characters instead. The code above is merely an example: any new characters are allowed as long as each argument is only one character long.
 
