@@ -1,7 +1,7 @@
 {
   "name": "path-toolkit",
   "description": "A configurable, high-speed, feature-rich object path resolver.",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "repository": "https://github.com/frenchroasted/path-toolkit.git",
   "homepage": "https://github.com/frenchroasted/path-toolkit",
   "bugs": "https://github.com/frenchroasted/path-toolkit/issues",
