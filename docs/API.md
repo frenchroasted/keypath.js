@@ -201,7 +201,22 @@ ptk.get(data, 'foo.@1.prop', other); // 'bar'
 ptk.get(data, 'foo{@1.prop}0', other); // 'a'
 ptk.get(data, 'foo{@1(%2)}', fn, 'x'); // 'blah'
 ```
-Use of the context placeholder is most likely to be helpful within the indirect property container (`{ }`) since that container creates a temporary context for evaluation, then returns to the original data context. In the above examples, the path `'foo.@1.prop'` will replace the original data context for the remainder of the evaluation. The net result is exactly the same as finding `other.prop` directly, except with more work and obfuscation. Within the indirect property container, though, this mechanism can be used to create data transformations or to run externally defined functions.
+Use of the numbered context placeholder is most likely to be helpful within the indirect property container (`{ }`) since that container creates a temporary context for evaluation, then returns to the original data context. In the above examples, the path `'foo.@1.prop'` will replace the original data context for the remainder of the evaluation. The net result is exactly the same as finding `other.prop` directly, except with more work and obfuscation. Within the indirect property container, though, this mechanism can be used to create data transformations or to run externally defined functions.
+
+Context tokens may be non-numeric, in which case the token will be used as a literal string. In all other cases in path-toolkit, when processing a keypath, each token is interpreted as a property or index of the current object context. The numbered context may be used to inject an external value into the system, but sometimes it isn't convenient to call `.get()` with extra arguments but instead to pass string arguments directly. When the context indicator (@) is used with a non-numeric token, the token is treated as a string literal and is not evaluated as a property of the current context. In some cases, it may be useful to quote the static string to guard against special characters in the string.
+```javascript
+var data = {
+    foo: {
+        a: 'one',
+        b: '123.456',
+        c: 'three'
+    }
+};
+ptk.get(data, 'foo.a'); // 'one'
+ptk.get(data, 'foo.a.indexOf(@1)', 'ne'); // 1
+ptk.get(data, 'foo.a.indexOf(@ne)');      // 1
+ptk.get(data, 'foo.b.indexOf(@".")');     // 3
+```
 
 ### set
 ```javascript

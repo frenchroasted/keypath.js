@@ -23,7 +23,7 @@
 ## Usage
 
 ```javascript
-var PathToolkit = require('path-toolkit/dist/path-toolkit');
+var PathToolkit = require('path-toolkit');
 var ptk = new PathToolkit();
 var obj = {
     foo: {

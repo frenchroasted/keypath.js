@@ -18,7 +18,6 @@ var $WILDCARD     = '*',
     $ROOT         = 'root',
     $PLACEHOLDER  = 'placeholder',
     $CONTEXT      = 'context',
-    $LITERAL      = 'literal',
     $PROPERTY     = 'property',
     $COLLECTION   = 'collection',
     $EACH         = 'each',
@@ -75,6 +74,18 @@ var wildCardMatch = function(template, str){
 var isObject = function(val){
     if (typeof val === $UNDEFINED || val === null) { return false;}
     return ( (typeof val === 'function') || (typeof val === 'object') );
+};
+
+/**
+ * Inspect input value and determine whether it is an Integer or not.
+ * Values of undefined and null will return "false".
+ * @private
+ * @param  {String}  val String to examine
+ * @return {Boolean}     True if thing consists of at least one digit and only of digits (no . or ,)
+ */
+var digitsRegex = /^\d+$/;
+var isDigits = function(val){
+    return digitsRegex.test(val);
 };
 
 /**
@@ -200,9 +211,6 @@ var PathToolkit = function(options){
             },
             '@': {
                 'exec': $CONTEXT
-            },
-            '!': {
-                'exec': $LITERAL
             }
         };
         // Default separator special characters
@@ -305,7 +313,6 @@ var PathToolkit = function(options){
             collection = [],
             depth = 0,
             escaped = 0;
-console.log('tokenize:', str);
 
         if (opt.useCache && cache[str] !== UNDEF){ return cache[str]; }
 
@@ -353,7 +360,6 @@ console.log('tokenize:', str);
                             recur = stripQuotes(subpath);
                         }
                         else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
-console.log('3quote has mods:', mods.has, mods);
                             recur = subpath;
                         }
                         else {
@@ -371,7 +377,6 @@ console.log('3quote has mods:', mods.has, mods);
                             recur = stripQuotes(subpath);
                         }
                         else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
-console.log('2quote has mods:', mods.has, mods);
                             recur = subpath;
                         }
                         else {
@@ -402,8 +407,7 @@ console.log('2quote has mods:', mods.has, mods);
                     else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
                         if (mods.has){
                             word = {'w': subpath, 'mods': mods, 'doEach': doEach};
-console.log('quote has mods:', mods.has, mods);
-                            tokens.push(word);
+                            // tokens.push(word);
                             mods = {};
                             simplePath &= false;
                         }
@@ -535,11 +539,11 @@ console.log('quote has mods:', mods.has, mods);
 
         // Add trailing word to tokens, if present
         if (typeof word === 'string' && word && (mods.has || hasWildcard || doEach)){
-            word = {'w': word, 'mods': mods, 'doEach': doEach};
+            word = {'w': word, 'mods': word.mods || mods, 'doEach': doEach};
             mods = {};
             simplePath &= false;
         }
-        else if (word && word.mods){
+        else if (word && mods.has){
             word.mods = mods;
         }
         // We are gathering a collection, so add last word to collection and then store
@@ -769,9 +773,6 @@ console.log('quote has mods:', mods.has, mods);
                             // arg of type function, array, or plain object
                             wordCopy = args[placeInt].toString();
                         }
-                        if (curr.mods.literal){
-                            // anything to do here?
-                        }
                     }
 
                     // doEach option means to take all values in context (must be an array), apply
@@ -787,17 +788,16 @@ console.log('quote has mods:', mods.has, mods);
                             // "context" modifier ("@" by default) replaces current context with a value from
                             // the arguments.
                             if (curr.mods.context){
-                                placeInt = wordCopy - 1;
-                                if (args[placeInt] === UNDEF){ return undefined; }
-                                // Force args[placeInt] to String, won't atwordCopyt to process
-                                // arg of type function, array, or plain object
-                                ret.push(args[placeInt]);
-                            }
-                            // "literal" modifier indicates word should be taken as-is, not as
-                            // a property of the current context.
-                            else if (curr.mods.literal){
-console.log('wordCopy:', wordCopy);
-                                ret.push(wordCopy);
+                                if (isDigits(wordCopy)){
+                                    placeInt = wordCopy - 1;
+                                    if (args[placeInt] === UNDEF){ return undefined; }
+                                    // Force args[placeInt] to String, won't atwordCopyt to process
+                                    // arg of type function, array, or plain object
+                                    ret.push(args[placeInt]);
+                                }
+                                else {
+                                    ret = wordCopy;
+                                }
                             }
                             else {
                                 // Repeat basic string property processing with word and modified context
@@ -831,17 +831,15 @@ console.log('wordCopy:', wordCopy);
                         // "context" modifier ("@" by default) replaces current context with a value from
                         // the arguments.
                         if (curr.mods.context){
-                            placeInt = wordCopy - 1;
-                            if (args[placeInt] === UNDEF){ return undefined; }
-                            // Force args[placeInt] to String, won't atwordCopyt to process
-                            // arg of type function, array, or plain object
-                            ret = args[placeInt];
-                        }
-                        // "literal" modifier indicates word should be taken as-is, not as
-                        // a property of the current context.
-                        else if (curr.mods.literal){
-console.log('wordCopy:', wordCopy);
-                            ret.push(wordCopy);
+                            if (isDigits(wordCopy)){
+                                placeInt = wordCopy - 1;
+                                if (args[placeInt] === UNDEF){ return undefined; }
+                                // Force args[placeInt] to String, won't atwordCopyt to process
+                                // arg of type function, array, or plain object
+                                ret = args[placeInt];
+                            } else {
+                                ret = wordCopy;
+                            }
                         }
                         else {
                             // Repeat basic string property processing with word and modified context

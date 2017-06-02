@@ -59,7 +59,7 @@ var data = {
 
 
 
-var str = 'accounts.1.test1.indexOf(!"op")';
+var str = 'accounts.1.test1.indexOf(@op)';
 // expect(ptk.get(data, str)).to.equal(data.accounts[1].test1.indexOf('op'));
 console.log('tokens:', JSON.stringify(ptk.getTokens(str)));
 console.log('idx:', ptk.get(data, str));
