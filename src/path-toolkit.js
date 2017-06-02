@@ -1,7 +1,7 @@
 /**
  * @fileOverview PathToolkit evaluates string paths as property/index sequences within objects and arrays
  * @author Aaron Brown
- * @version 1.0.3
+ * @version 1.1.0
  */
 
 // Parsing, tokeninzing, etc
