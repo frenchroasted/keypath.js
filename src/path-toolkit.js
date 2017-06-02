@@ -1,7 +1,7 @@
 /**
  * @fileOverview PathToolkit evaluates string paths as property/index sequences within objects and arrays
  * @author Aaron Brown
- * @version 1.0.0
+ * @version 1.0.3
  */
 
 // Parsing, tokeninzing, etc
@@ -18,6 +18,7 @@ var $WILDCARD     = '*',
     $ROOT         = 'root',
     $PLACEHOLDER  = 'placeholder',
     $CONTEXT      = 'context',
+    $LITERAL      = 'literal',
     $PROPERTY     = 'property',
     $COLLECTION   = 'collection',
     $EACH         = 'each',
@@ -199,6 +200,9 @@ var PathToolkit = function(options){
             },
             '@': {
                 'exec': $CONTEXT
+            },
+            '!': {
+                'exec': $LITERAL
             }
         };
         // Default separator special characters
@@ -301,6 +305,7 @@ var PathToolkit = function(options){
             collection = [],
             depth = 0,
             escaped = 0;
+console.log('tokenize:', str);
 
         if (opt.useCache && cache[str] !== UNDEF){ return cache[str]; }
 
@@ -348,6 +353,7 @@ var PathToolkit = function(options){
                             recur = stripQuotes(subpath);
                         }
                         else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
+console.log('3quote has mods:', mods.has, mods);
                             recur = subpath;
                         }
                         else {
@@ -365,6 +371,7 @@ var PathToolkit = function(options){
                             recur = stripQuotes(subpath);
                         }
                         else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
+console.log('2quote has mods:', mods.has, mods);
                             recur = subpath;
                         }
                         else {
@@ -393,8 +400,17 @@ var PathToolkit = function(options){
                     }
                     // Quoted subpath is all taken literally without token evaluation. Just add subpath to tokens as-is.
                     else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
-                        tokens.push(subpath);
-                        simplePath &= true;
+                        if (mods.has){
+                            word = {'w': subpath, 'mods': mods, 'doEach': doEach};
+console.log('quote has mods:', mods.has, mods);
+                            tokens.push(word);
+                            mods = {};
+                            simplePath &= false;
+                        }
+                        else {
+                            tokens.push(subpath);
+                            simplePath &= true;
+                        }
                     }
                     // Otherwise, create token object to hold tokenized subpath, add to tokens.
                     else {
@@ -749,9 +765,12 @@ var PathToolkit = function(options){
                         if (curr.mods.placeholder){
                             placeInt = wordCopy - 1;
                             if (args[placeInt] === UNDEF){ return undefined; }
-                            // Force args[placeInt] to String, won't atwordCopyt to process
+                            // Force args[placeInt] to String, won't attempt to process
                             // arg of type function, array, or plain object
                             wordCopy = args[placeInt].toString();
+                        }
+                        if (curr.mods.literal){
+                            // anything to do here?
                         }
                     }
 
@@ -773,6 +792,12 @@ var PathToolkit = function(options){
                                 // Force args[placeInt] to String, won't atwordCopyt to process
                                 // arg of type function, array, or plain object
                                 ret.push(args[placeInt]);
+                            }
+                            // "literal" modifier indicates word should be taken as-is, not as
+                            // a property of the current context.
+                            else if (curr.mods.literal){
+console.log('wordCopy:', wordCopy);
+                                ret.push(wordCopy);
                             }
                             else {
                                 // Repeat basic string property processing with word and modified context
@@ -811,6 +836,12 @@ var PathToolkit = function(options){
                             // Force args[placeInt] to String, won't atwordCopyt to process
                             // arg of type function, array, or plain object
                             ret = args[placeInt];
+                        }
+                        // "literal" modifier indicates word should be taken as-is, not as
+                        // a property of the current context.
+                        else if (curr.mods.literal){
+console.log('wordCopy:', wordCopy);
+                            ret.push(wordCopy);
                         }
                         else {
                             // Repeat basic string property processing with word and modified context
