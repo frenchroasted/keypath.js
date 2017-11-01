@@ -360,7 +360,16 @@ var PathToolkit = function(options){
                             recur = stripQuotes(subpath);
                         }
                         else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
-                            recur = subpath;
+                            if (mods.has){
+                                recur = {'w': subpath, 'mods': mods, 'doEach': doEach};
+                                // tokens.push(word);
+                                mods = {};
+                                simplePath &= false;
+                            }
+                            else {
+                                recur = subpath;
+                                simplePath &= true;
+                            }
                         }
                         else {
                             recur = tokenize(subpath);
@@ -377,7 +386,16 @@ var PathToolkit = function(options){
                             recur = stripQuotes(subpath);
                         }
                         else if (closer.exec === $SINGLEQUOTE || closer.exec === $DOUBLEQUOTE){
-                            recur = subpath;
+                            if (mods.has){
+                                recur = {'w': subpath, 'mods': mods, 'doEach': doEach};
+                                // tokens.push(word);
+                                mods = {};
+                                simplePath &= false;
+                            }
+                            else {
+                                recur = subpath;
+                                simplePath &= true;
+                            }
                         }
                         else {
                             recur = tokenize(subpath);
@@ -564,6 +582,7 @@ var PathToolkit = function(options){
         // If path was valid, cache the result
         opt.useCache && (cache[str] = {t: tokens, simple: simplePath});
 
+console.log('Tokens:', JSON.stringify(tokens,undefined,2));
         return {t: tokens, simple: simplePath};
     };
 

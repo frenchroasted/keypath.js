@@ -7,7 +7,8 @@ var chai        = require( 'chai' ),
 var ptk = new PathToolkit();
 
 describe( 'PathToolkit', function(){
-    var data, other;
+    var data, other,
+        escribe = function(){};
 
     beforeEach(function(){
         data = {
@@ -72,6 +73,7 @@ describe( 'PathToolkit', function(){
 
     });
 
+    escribe( 'disable', function(){
     it('should be the PathToolkit prototype', function () {
         expect(PathToolkit).to.be.a.function;
     });
@@ -80,7 +82,6 @@ describe( 'PathToolkit', function(){
         expect(new PathToolkit()).to.be.an.instanceOf(PathToolkit);
     });
 
-    // xdescribe( 'disable', function(){
     describe( 'get', function(){
         it( 'should get simple dot-separated properties', function(){
             var str = 'accounts.1.checking.id';
@@ -1243,6 +1244,30 @@ describe( 'PathToolkit', function(){
             });
         });
     });
-    // });
+    });
 
+        // it( 'should support quoted literal strings in collections', function(){
+        //     var str = 'propA.concat(@"xxx",@"yyy")';
+        //     expect(ptk.get(data, str)).to.equal(data.propA.concat('xxx','yyy'));
+        // });
+        it( 'should support nested function calls', function(){
+            var str = 'o2a(~a2o(~response.accounts,@id),@key)';
+            var data = {
+                  response: {accounts: [{id: 1234, bal: 999}, {id: 2345, bal: 111}, {id: 5555, bal: 425}, {id: 8767, bal: 0}, ]},
+                  a2o: function (a, key) {
+                         var o = {};
+                         a && a.constructor === Array && a.forEach(function (item) { o[item[key]] = item; });
+                         return o;
+                  },
+                  o2a: function (o, prop) {
+                         console.log(this, o, prop);
+                         var a = [];
+                         o && o.constructor === Object && Object.keys(o).forEach(function (key) { prop && (o[key][prop] = key); a.push(o[key]); });
+                         return a;
+                  }
+            };
+            // ptk.setSeparatorCollection('|')
+            expect(ptk.get(data, str)).to.equal(data.o2a( data.a2o( data.response.accounts, 'id' ), 'key' ));
+        });
+        
 } );
