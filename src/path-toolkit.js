@@ -582,7 +582,6 @@ var PathToolkit = function(options){
         // If path was valid, cache the result
         opt.useCache && (cache[str] = {t: tokens, simple: simplePath});
 
-console.log('Tokens:', JSON.stringify(tokens,undefined,2));
         return {t: tokens, simple: simplePath};
     };
 
