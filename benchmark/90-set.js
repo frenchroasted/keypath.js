@@ -3,6 +3,7 @@
 var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     loset = require( 'lodash.set' ),
+    moutset = require( 'mout/object/set' ),
     keypather = require( 'keypather' )(),
     
     path = 'foo.bar.qux.baz',
@@ -25,6 +26,9 @@ module.exports = {
         },
         'lodash#set': function(){
             loset( data, path, 123 );
+        },
+        'mout#set': function(){
+            moutset( data, path, 123 );
         }
     }
 };

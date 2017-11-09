@@ -4,6 +4,7 @@ var PathToolkit = require( '../dist/path-toolkit-min' ),
     tk = new PathToolkit(),
     tkNoCache = new PathToolkit({cache:false}),
     loget = require( 'lodash.get' ),
+    moutget = require( 'mout/object/get' ),
     keypather = require( 'keypather' )(),
     
     path = 'foo.bar.qux.baz',
@@ -35,6 +36,9 @@ module.exports = {
         },
         'lodash#get': function(){
             loget( data, path );
+        },
+        'mout#get': function(){
+            moutget( data, path );
         },
         'native#dot': function(){
             native(data);

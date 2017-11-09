@@ -49,6 +49,7 @@
     "keypather": "2.0.1",
     "lodash.get": "4.4.2",
     "lodash.set": "4.3.2",
+    "mout": "0.11",
     "merge-stream": "1.0.0",
     "microtime": "2.1.1",
     "mocha": "3.0.2",
