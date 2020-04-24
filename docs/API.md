@@ -17,7 +17,7 @@ var val1 = ptk.get(obj, path);
 var val2 = ptk.get(obj, path, arg1, arg2,..., argN);
 ```
 
-If the keypath is invalid or does not exist within the target object, `get` returns `undefined`. The `get` function will short circuit and return as soon as `undefined` is detected to prevent unexpected object reference exceptions.
+If the keypath is invalid or does not exist within the target object, `get` returns `undefined` by default. This return value can be configured through options (see `setDefaultReturnVal` below) or by using the alternate method `getWithDefault` (see below). The `get` function will short circuit and return as soon as `undefined` is detected to prevent unexpected object reference exceptions.
 
 Simple keypaths with dot notation and no special operators are optimally executed in standalone code for high performance.
 ```javascript
@@ -218,6 +218,42 @@ ptk.get(data, 'foo.a.indexOf(@ne)');      // 1
 ptk.get(data, 'foo.b.indexOf(@".")');     // 3
 ```
 
+### getWithDefault
+```javascript
+var val1 = ptk.get(obj, path, defaultReturnVal);
+var val2 = ptk.get(obj, path, defaultReturnVal, arg1, arg2,..., argN);
+```
+
+`getWithDefault` behaves exactly the same as `get`. When the resolved value is undefined, either because of an invalid path or because `undefined` is the value resolved by the path, the value in the `defaultReturnVal` argument will be returned in place of the current default return val configured for this path-toolkit instance.
+```javascript
+var data = {
+    foo: {
+        a: {
+          one: 1,
+          two: 2
+        },
+        b: '123.456',
+        c: 'three'
+    }
+};
+
+// native javascript
+// One way of avoiding an exception if 'foo.a' doesn't exist in 'data'.
+// The results can be unclear from reading the code when some of the values may be boolean.
+var x = data.foo && foo.a && foo.a.one;
+
+// Another way that's more reliable and provides a default value.
+// This method is more verbose, especially for deep objects. Also might be confused by booleans.
+var y = (data.foo && data.foo.a) ? foo.a.one : 0;
+
+// Using the new optional chaining operator to prevent exceptions, but there is no default value.
+var z = data.foo?.a?.one;
+
+// Path-toolkit
+var value1 = ptk.getWithDefault(data, 'foo.a.one', 0); // returns 0 if any part of the path is invalid
+var value2 = ptk.getWithDefault(data, 'foo.obj', {});  // returns an empty object if "foo.obj" doesn't exist
+```
+
 ### set
 ```javascript
 var result1 = ptk.set(obj, path, newVal);
@@ -323,6 +359,7 @@ The default options are as follows:
     cache: true,
     force: false,
     simple: false,
+    defaultReturnVal: undefined,
     separators: {
         '.': {
             'exec': 'property'
@@ -414,6 +451,13 @@ In many cases, the more advanced PathToolkit features are not necessary and only
 **NOTE:** When "simple" mode is **disabled**, the full set of default characters will be restored. Calling `setSimpleOff()` is nearly equivalent to calling `resetOptions()` except that the "cache" and "force" options are not affected by `setSimpleOff()`. Also, the property separator character will be reset to the default "." character when simple mode is disabled. The same is true for `setSimple(false)`.
 
 Clears the cache to force all paths to be re-evaluated with the new path syntax.
+
+#### setDefaultReturnVal
+```javascript
+ptk.setDefaultReturnVal(0);  // sets the default return value to zero
+ptk.setDefaultReturnVal({}); // sets the default return value to an empty object
+```
+Replaces the default value returned by `get` when that method resolves to a value that is undefined.
 
 #### setSeparatorProperty
 ```javascript

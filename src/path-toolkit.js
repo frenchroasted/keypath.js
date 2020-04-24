@@ -25,7 +25,7 @@ var $WILDCARD     = '*',
     $DOUBLEQUOTE  = 'doublequote',
     $CALL         = 'call',
     $EVALPROPERTY = 'evalProperty';
-    
+
 /**
  * Tests whether a wildcard templates matches a given string.
  * ```javascript
@@ -154,7 +154,7 @@ var PathToolkit = function(options){
         separatorList = Object.keys(opt.separators);
         containerList = Object.keys(opt.containers);
         containerCloseList = containerList.map(function(key){ return opt.containers[key].closer; });
-        
+
         propertySeparator = '';
         Object.keys(opt.separators).forEach(function(sep){ if (opt.separators[sep].exec === $PROPERTY){ propertySeparator = sep; } });
         singlequote = '';
@@ -167,11 +167,11 @@ var PathToolkit = function(options){
         // Find all special characters except property separator (. by default)
         simplePathChars = '[\\\\' + [$WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).join('\\').replace('\\'+propertySeparator, '') + ']';
         simplePathRegEx = new RegExp(simplePathChars);
-        
+
         // Find all special characters, including backslash
         allSpecials = '[\\\\\\' + [$WILDCARD].concat(prefixList).concat(separatorList).concat(containerList).concat(containerCloseList).join('\\') + ']';
         allSpecialsRegEx = new RegExp(allSpecials, 'g');
-        
+
         // Find all escaped special characters
         // escapedSpecialsRegEx = new RegExp('\\'+allSpecials, 'g');
         // Find all escaped non-special characters, i.e. unnecessary escapes
@@ -182,7 +182,7 @@ var PathToolkit = function(options){
         else {
             escapedQuotes = '';
         }
-        
+
         // Find wildcard character
         wildcardRegEx = new RegExp('\\'+$WILDCARD);
     };
@@ -197,6 +197,7 @@ var PathToolkit = function(options){
         opt.useCache = true;  // cache tokenized paths for repeated use
         opt.simple = false;   // only support dot-separated paths, no other special characters
         opt.force = false;    // create intermediate properties during `set` operation
+        opt['defaultReturnVal'] = UNDEF;   // return undefined by default when path resolution fails
 
         // Default prefix special characters
         opt.prefixes = {
@@ -266,7 +267,7 @@ var PathToolkit = function(options){
         return  (cleanStr[0] === cleanStr[strLen - 1]) &&
                 (cleanStr[0] === singlequote || cleanStr[0] === doublequote);
     };
-    
+
     /**
      * Remove enclosing quotes from a string. The isQuoted function will determine
      * if any change is needed. If the string is quoted, we know the first and last
@@ -282,7 +283,7 @@ var PathToolkit = function(options){
         }
         return str;
     };
-    
+
     /**
      * Scan input string from left to right, one character at a time. If a special character
      * is found (one of "separators", "containers", or "prefixes"), either store the accumulated
@@ -679,7 +680,7 @@ var PathToolkit = function(options){
                         }
                         j = 0;
                         eachLength = context.length;
-                        
+
                         // Path like Array->Each->Array requires a nested for loop
                         // to process the two array layers.
                         while(j < eachLength){
@@ -698,7 +699,7 @@ var PathToolkit = function(options){
                                     contextProp = resolvePath(context[j], curr.tt[i], undefined, args, valueStack);
                                 }
                                 if (contextProp === UNDEF) { return undefined; }
-        
+
                                 if (newValueHere){
                                     if (curr.tt[i].t && curr.tt[i].exec === $EVALPROPERTY){
                                         context[j][contextProp] = newValue;
@@ -732,7 +733,7 @@ var PathToolkit = function(options){
                                 contextProp = resolvePath(context, curr.tt[i], undefined, args, valueStack);
                             }
                             if (contextProp === UNDEF) { return undefined; }
-    
+
                             if (newValueHere){
                                 if (curr.tt[i].t && curr.tt[i].exec === $EVALPROPERTY){
                                     context[contextProp] = newValue;
@@ -848,7 +849,7 @@ var PathToolkit = function(options){
                                 ret = context[wordCopy];
                             }
                             else if (typeof context === 'function'){
-                                
+
                                 ret = wordCopy;
                             }
                             // Plain property tokens are listed as special word tokens whenever
@@ -1159,6 +1160,7 @@ var PathToolkit = function(options){
      */
     _this.get = function (obj, path){
         var i = 0,
+            returnVal,
             len = arguments.length,
             args;
         // For string paths, first see if path has already been cached and if the token set is simple. If
@@ -1167,24 +1169,98 @@ var PathToolkit = function(options){
         // If none are found, we can use the optimized string resolver.
         if (typeof path === $STRING){
             if (opt.useCache && cache[path] && cache[path].simple){
-                return quickResolveTokenArray(obj, cache[path].t);
+                returnVal = quickResolveTokenArray(obj, cache[path].t);
             }
             else if (!simplePathRegEx.test(path)){
-                return quickResolveString(obj, path);
+                returnVal = quickResolveString(obj, path);
+            }
+            // If we made it this far, the path is complex and may include placeholders. Gather up any
+            // extra arguments and call the full `resolvePath` function.
+            else {
+                args = [];
+                if (len > 2){
+                    for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
+                }
+                returnVal = resolvePath(obj, path, undefined, args);
             }
         }
         // For array paths (pre-compiled token sets), check for simplicity so we can use the optimized resolver.
         else if (Array.isArray(path.t) && path.simple){
-            return quickResolveTokenArray(obj, path.t);
+            returnVal = quickResolveTokenArray(obj, path.t);
         }
-        
         // If we made it this far, the path is complex and may include placeholders. Gather up any
         // extra arguments and call the full `resolvePath` function.
-        args = [];
-        if (len > 2){
-            for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
+        else {
+            args = [];
+            if (len > 2){
+                for (i = 2; i < len; i++) { args[i-2] = arguments[i]; }
+            }
+            returnVal = resolvePath(obj, path, undefined, args);
         }
-        return resolvePath(obj, path, undefined, args);
+
+        return returnVal === UNDEF ? opt.defaultReturnVal : returnVal;
+    };
+
+    /**
+     * Evaluates keypath in object and returns the value found there, if available. If the path
+     * does not exist in the provided data object, returns default value as provided in arguments.
+     * For "simple" paths, which don't include any operations beyond property separators, optimized
+     * resolvers will be used which are more lightweight than the full-featured `resolvePath`.
+     * @public
+     * @param {Any} obj Source data object
+     * @param {String} path Keypath to evaluate within "obj". Also accepts token array in place of a string path.
+     * @param {Any} defaultReturnVal Value to return if "get" results in undefined.
+     * @return {Any} If the keypath exists in "obj", return the value at that location; If not, return value from "defaultReturnVal".
+     */
+    _this.getWithDefault = function (obj, path, defaultReturnVal){
+        var i = 0,
+            returnVal,
+            len = arguments.length,
+            args = [ obj, path ];
+
+        // Code below duplicates "get" method above rather than simply executing "get" and customizing
+        // the return value because "get" may have failed to resolve and returned a non-undefined value
+        // due to an instance option, options.defaultReturnVal. In that case, this method can't know
+        // whether the non-undefined return value was the actual value at that path, or was returned
+        // due to path resolution failure. To be safe, therefore, the "get" logic is duplicated but
+        // the defaultReturnVal argument is used in place of the instance option in case of failure.
+
+        // For string paths, first see if path has already been cached and if the token set is simple. If
+        // so, we can use the optimized token array resolver using the cached token set.
+        // If there is no cached entry, use RegEx to look for special characters apart from the separator.
+        // If none are found, we can use the optimized string resolver.
+        if (typeof path === $STRING){
+            if (opt.useCache && cache[path] && cache[path].simple){
+                returnVal = quickResolveTokenArray(obj, cache[path].t);
+            }
+            else if (!simplePathRegEx.test(path)){
+                returnVal = quickResolveString(obj, path);
+            }
+            // If we made it this far, the path is complex and may include placeholders. Gather up any
+            // extra arguments and call the full `resolvePath` function.
+            else {
+                args = [];
+                if (len > 3){
+                    for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
+                }
+                returnVal = resolvePath(obj, path, undefined, args);
+            }
+        }
+        // For array paths (pre-compiled token sets), check for simplicity so we can use the optimized resolver.
+        else if (Array.isArray(path.t) && path.simple){
+            returnVal = quickResolveTokenArray(obj, path.t);
+        }
+        // If we made it this far, the path is complex and may include placeholders. Gather up any
+        // extra arguments and call the full `resolvePath` function.
+        else {
+            args = [];
+            if (len > 3){
+                for (i = 3; i < len; i++) { args[i-3] = arguments[i]; }
+            }
+            returnVal = resolvePath(obj, path, undefined, args);
+        }
+
+        return returnVal === UNDEF ? defaultReturnVal : returnVal;
     };
 
     /**
@@ -1204,7 +1280,7 @@ var PathToolkit = function(options){
             args,
             ref,
             done = false;
-            
+
         // Path resolution follows the same logic as `get` above, with one difference: `get` will
         // abort by returning the value as soon as it's found. `set` does not abort so the if-else
         // structure is slightly different to dictate when/if the final case should execute.
@@ -1222,7 +1298,7 @@ var PathToolkit = function(options){
             ref = quickResolveTokenArray(obj, path.t, val);
             done |= true;
         }
-        
+
         // Path was (probably) a string and it contained complex path characters
         if (!done) {
             if (len > 3){
@@ -1231,7 +1307,7 @@ var PathToolkit = function(options){
             }
             ref = resolvePath(obj, path, val, args);
         }
-        
+
         // `set` can set a new value in multiple places if the final path segment is an array.
         // If any of those value assignments fail, `set` will return "false" indicating failure.
         if (Array.isArray(ref)){
@@ -1330,7 +1406,8 @@ var PathToolkit = function(options){
         if (typeof options.simple !== $UNDEFINED){
             var tempCache = opt.useCache; // preserve these two options after "setDefaultOptions"
             var tempForce = opt.force;
-            
+            var tempDefaultReturnVal = opt.defaultReturnVal;
+
             opt.simple = truthify(options.simple);
             if (opt.simple){
                 setSimpleOptions();
@@ -1344,6 +1421,11 @@ var PathToolkit = function(options){
         }
         if (typeof options.force !== $UNDEFINED){
             opt.force = truthify(options.force);
+        }
+        // The default return value may be set to undefined, which
+        // makes testing for this option more tricky.
+        if (Object.keys(options).includes('defaultReturnVal')){
+            opt['defaultReturnVal'] = options.defaultReturnVal;
         }
         updateRegEx();
     };
@@ -1419,7 +1501,7 @@ var PathToolkit = function(options){
         }
         cache = {};
     };
-    
+
     /**
      * Enables "simple" mode
      * @public
@@ -1432,7 +1514,7 @@ var PathToolkit = function(options){
         updateRegEx();
         cache = {};
     };
-    
+
     /**
      * Disables "simple" mode, restores default PathToolkit syntax
      * @public
@@ -1448,6 +1530,15 @@ var PathToolkit = function(options){
         opt.useCache = tempCache;
         opt.force = tempForce;
         cache = {};
+    };
+
+    /**
+     * Sets default value to return if "get" resolves to undefined
+     * @public
+     * @param {Any} val Value which will be returned when "get" resolves to undefined
+     */
+    _this.setDefaultReturnVal = function(val){
+        opt['defaultReturnVal'] = val;
     };
 
     /**
