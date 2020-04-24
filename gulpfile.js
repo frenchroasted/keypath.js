@@ -19,17 +19,17 @@ const gulp = require( 'gulp' ),
     mergeStream = require( 'merge-stream' ),
     uglify = require( 'gulp-uglify' ),
     yargs = require( 'yargs' ),
-    
+
     colors = gutil.colors,
     log = gutil.log,
-    
+
     fgrep = yargs.argv.fgrep ?
         `**/*${ yargs.argv.fgrep }*.js` :
         '**',
     tgrep = yargs.argv.tgrep;
 
 gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
-    
+
         // path-toolkit.js does not really need to be bundled
         // but it's easier to just reuse the code
         rollup( {
@@ -84,7 +84,7 @@ gulp.task( 'dist', /*[ 'docs' ],*/ () => mergeStream(
 //         .pipe( gulp.dest( 'docs' ) );
 // } );
 
-gulp.task( 'test', [ 'dist' ], ( done ) => {
+gulp.task( 'test', gulp.series( 'dist', ( done ) => {
     gulp.src( [ 'dist/*.js' ] )
         .pipe( filter( fgrep ) )
         .pipe( debug( { title: 'Testing' } ) )
@@ -99,19 +99,19 @@ gulp.task( 'test', [ 'dist' ], ( done ) => {
                 .pipe( istanbul.writeReports( { reporters:[ 'html' ] } ) )
                 .on( 'end', done );
         } );
-} );
+} ) );
 
-gulp.task( 'benchmark', [ 'dist' ], () => {
+gulp.task( 'benchmark', gulp.series( 'dist', () => {
     return gulp.src( [ 'benchmark/*.js' ] )
         .pipe( filter( fgrep ) )
         .pipe( debug( { title: 'Benchmarking' } ) )
         .pipe( benchmark() )
         .pipe( gulp.dest( './benchmark' ) );
-} );
+} ) );
 
-gulp.task( 'monitor', [ 'dist' ], ( done ) => {
+gulp.task( 'monitor', gulp.series( 'dist', ( done ) => {
     var started = false;
-    
+
     monitor( {
             script: 'app.js',
             args: [ '--fgrep', yargs.argv.fgrep ],
@@ -122,9 +122,9 @@ gulp.task( 'monitor', [ 'dist' ], ( done ) => {
             // to avoid nodemon being started multiple times
             if( !started ){
                 done();
-                started = true; 
-            } 
+                started = true;
+            }
         } );
-} );
+} ) );
 
-gulp.task( 'default', [ 'test' ] );
+gulp.task( 'default', gulp.series( 'dist' ) );
