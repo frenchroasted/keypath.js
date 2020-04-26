@@ -298,6 +298,8 @@ Does a seep scan through the data object, executing a `===` test on each node ag
 
 **Note:** Object keys are sorted in processing, so repeated calls to `find` should produce identical results.
 
+**Warning:** `find` will not safely process objects with circular references, resulting in a stack overflow exception. For a safe, though slightly slower, alternative, see `findSafe` below.
+
 ```javascript
 var data = {
     foo: {
@@ -307,6 +309,34 @@ var data = {
 };
 ptk.find(data, 'b'); // 'foo.bar.1'
 ptk.find(data, 'b', 'all'); // ['foo.bar.1','xyz']
+```
+
+### findSafe
+```javascript
+var path = ptk.find(obj, val); // first found path to value
+var allPaths = ptk.findSafe(obj, val, 'all'); // all paths to value
+```
+
+Does a seep scan through the data object, executing a `===` test on each node against the provided value. If the equals test returns true, the path is returned. By default, only one path is returned and the `findSafe` function aborts as soon as it succeeds. If the last argument is 'all', `findSafe` will scan the full object and return all paths with matching values.
+
+When scanning an object, each node is tested for circular references. If such a reference is found, `findSafe` will throw an Error with the text "Circular object provided." and will immediately halt. Code using this method should wrap `findSafe` inside a try-catch.
+
+`findSafe` returns a path that is compliant with the current options. If a keypath segment includes special characters, it will be quoted with the current "singlequote" container character, and that quote will be escaped in the segment if it appears.
+
+**Note:** Object keys are sorted in processing, so repeated calls to `findSafe` should produce identical results.
+
+```javascript
+var data = {
+    foo: {
+        bar: ['a','b','c']
+    },
+    xyz: 'b'
+};
+data.foo.bar[3] = data.foo; // a circular reference is created
+
+ptk.find(data, 'b', 'all'); // results in a stack overflow exception, program will halt
+
+ptk.findSafe(data, 'b', 'all'); // Throws an Error
 ```
 
 ### escape

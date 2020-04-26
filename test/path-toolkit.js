@@ -708,6 +708,52 @@ describe( 'PathToolkit', function(){
 
     });
 
+    describe( 'findSafe', function(){
+        it( 'should return a valid path to the value if present in the root object', function(){
+            var val = data.accounts[1].test2;
+            expect(ptk.find(data, val)).to.equal('accounts.1.test2');
+            expect(ptk.get(data, ptk.find(data, val))).to.equal(val);
+        });
+
+        it( 'should throw an error if a circular reference is found', function(){
+            var badData = {
+                one: {
+                    two: {},
+                    three: [ 0, 1, {
+                        four: 'bad'
+                    }, 3 ]
+                }
+            };
+
+            // 1
+            expect(function(){ptk.findSafe(badData, 3, 'all');}).to.not.throw();
+            // 2
+            badData.one.two.badRef = badData;
+            expect(function(){ptk.findSafe(badData, 3, 'all');}).to.throw(Error, 'Circular object provided');
+            // 3
+            badData.one.two.badRef = {};
+            badData.one.three[2].four = badData.one;
+            expect(function(){ptk.findSafe(badData, 3, 'all');}).to.throw(Error, 'Circular object provided');
+        });
+        
+        it( 'should not throw an error if internal references are not circular', function(){
+            var complexData = {
+                one: {
+                    two: {},
+                    three: [ 0, 1, {
+                        four: 'stub'
+                    }, 3 ]
+                }
+            };
+            var results;
+
+            complexData.one.two.newRef = complexData.one.three;
+            expect(function(){results = ptk.findSafe(complexData, 3, 'all');}).to.not.throw();
+            expect(results).to.be.an('array');
+            expect(results.length).to.equal(2);
+        });
+    } );
+
     describe('getTokens', function () {
         it('should return a token array from a string path', function () {
             var str = 'accounts.1.test2';
@@ -1050,7 +1096,7 @@ describe( 'PathToolkit', function(){
            it('should change default value with setDefaultReturnVal', function(){
                 var str = 'accounts.1.asdfasdf.id';
                 var customDefault;
-                
+
                 customDefault = 2;
                 ptk.setDefaultReturnVal(customDefault);
                 expect(ptk.get(data, str)).to.equal(customDefault);

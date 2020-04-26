@@ -1068,12 +1068,19 @@ var PathToolkit = function(options){
      * @param {Any} val The value we are looking for within `obj`
      * @param {Function} savePath Callback function which will store accumulated paths and indicate whether to continue
      * @param {String} path Accumulated keypath; undefined at first, populated in recursive calls
+     * @param {Function} isCircularCb Callback function which return true if this object has circular ancestry, used by `findSafe()`
      * @return {Boolean} Indicates whether scan process should continue ("true"->yes, "false"->no)
      */
-    var scanForValue = function(obj, val, savePath, path){
+    var scanForValue = function(obj, val, savePath, path, isCircularCb){
         var i, len, more, keys, prop;
 
         path = path ? path : '';
+
+        if(typeof isCircularCb !== $UNDEFINED && path){
+            if(isCircularCb(obj, path)){
+                throw new Error('Circular object provided. Path at "' + path + '" makes a loop.');
+            }
+        }
 
         // If we found the value we're looking for
         if (obj === val){
@@ -1083,8 +1090,8 @@ var PathToolkit = function(options){
         else if (Array.isArray(obj)){
             len = obj.length;
             for(i = 0; i < len; i++){
+              more = scanForValue(obj[i], val, savePath, path ? path + propertySeparator + i : i, isCircularCb);
                 // Call `scanForValue` recursively
-                more = scanForValue(obj[i], val, savePath, path + propertySeparator + i);
                 // Halt if that recursive call returned "false"
                 if (!more){ return; }
             }
@@ -1103,7 +1110,7 @@ var PathToolkit = function(options){
                     if (allSpecialsRegEx.test(prop)){
                         prop = quoteString(singlequote, prop);
                     }
-                    more = scanForValue(obj[keys[i]], val, savePath, path + propertySeparator + prop);
+                    more = scanForValue(obj[keys[i]], val, savePath, path ? path + propertySeparator + prop : prop, isCircularCb);
                     if (!more){ return; }
                 }
             }
@@ -1326,19 +1333,59 @@ var PathToolkit = function(options){
      * @return {Array} Array of keypaths to "val" or `undefined` if "val" is not found.
      */
     _this.find = function(obj, val, oneOrMany){
-        var retVal = [];
+        var foundPaths = [];
+        // savePath is the callback which will accumulate any found paths in a local array
+        var savePath = function(path){
+            foundPaths.push(path);
+            if(!oneOrMany || oneOrMany === 'one'){
+                return false; // stop scanning for value
+            }
+            return true; // keep scanning for value elsewhere in object
+        };
+        scanForValue(obj, val, savePath);
+        if(!oneOrMany || oneOrMany === 'one'){
+            return foundPaths.length > 0 ? foundPaths[0] : undefined;
+        }
+        return foundPaths.length > 0 ? foundPaths : undefined;
+    };
+
+    /**
+     * Locate a value within an object or array. During scan, protect against loop references.
+     * This is the publicly exposed interface to the private `scanForValue` function defined above.
+     * @public
+     * @param {Any} obj Source data object
+     * @param {Any} val The value to search for within "obj"
+     * @param {String} oneOrMany Optional; If missing or "one", `find` will only return the first valid path. If "onOrMany" is any other string, `find` will scan the full object looking for all valid paths to all cases where "val" appears.
+     * @return {Array} Array of keypaths to "val" or `undefined` if "val" is not found.
+     */
+    _this.findSafe = function(obj, val, oneOrMany){
+        var foundPaths = [];
         // savePath is the callback which will accumulate any found paths in a local array
         // variable.
         var savePath = function(path){
-            retVal.push(path.substr(1));
+            foundPaths.push(path);
             if(!oneOrMany || oneOrMany === 'one'){
-                retVal = retVal[0];
-                return false;
+                return false; // stop scanning for value
             }
-            return true;
+            return true; // keep scanning for value elsewhere in object
         };
-        scanForValue(obj, val, savePath);
-        return retVal[0] ? retVal : undefined;
+        // isCircular is a callback that will test if this object also exists
+        // in an ancestor path, indicating a circular reference.
+        var isCircular = function(ref, path){
+            var tokens = _this.getTokens(path);
+            // Walk up the ancestor chain checking for equality with current object
+            while(tokens.t.pop()){
+                if(_this.get(obj, tokens) === ref){
+                    return true;
+                }
+            }
+            return false;
+        };
+        scanForValue(obj, val, savePath, UNDEF, isCircular);
+        if(!oneOrMany || oneOrMany === 'one'){
+            return foundPaths.length > 0 ? foundPaths[0] : undefined;
+        }
+        return foundPaths.length > 0 ? foundPaths : undefined;
     };
 
     /**
