@@ -1157,7 +1157,8 @@ var PathToolkit = function(options){
 
     /**
      * Evaluates keypath in object and returns the value found there, if available. If the path
-     * does not exist in the provided data object, returns `undefined`. For "simple" paths, which
+     * does not exist in the provided data object, returns `undefined` (this return value is
+     * configurable in options, see `setDefaultReturnVal` below). For "simple" paths, which
      * don't include any operations beyond property separators, optimized resolvers will be used
      * which are more lightweight than the full-featured `resolvePath`.
      * @public
