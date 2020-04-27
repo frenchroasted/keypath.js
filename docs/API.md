@@ -17,7 +17,7 @@ var val1 = ptk.get(obj, path);
 var val2 = ptk.get(obj, path, arg1, arg2,..., argN);
 ```
 
-If the keypath is invalid or does not exist within the target object, `get` returns `undefined`. The `get` function will short circuit and return as soon as `undefined` is detected to prevent unexpected object reference exceptions.
+If the keypath is invalid or does not exist within the target object, `get` returns `undefined` by default. This return value can be configured through options (see `setDefaultReturnVal` below) or by using the alternate method `getWithDefault` (see below). The `get` function will short circuit and return as soon as `undefined` is detected to prevent unexpected object reference exceptions.
 
 Simple keypaths with dot notation and no special operators are optimally executed in standalone code for high performance.
 ```javascript
@@ -218,6 +218,42 @@ ptk.get(data, 'foo.a.indexOf(@ne)');      // 1
 ptk.get(data, 'foo.b.indexOf(@".")');     // 3
 ```
 
+### getWithDefault
+```javascript
+var val1 = ptk.get(obj, path, defaultReturnVal);
+var val2 = ptk.get(obj, path, defaultReturnVal, arg1, arg2,..., argN);
+```
+
+`getWithDefault` behaves exactly the same as `get`. When the resolved value is undefined, either because of an invalid path or because `undefined` is the value resolved by the path, the value in the `defaultReturnVal` argument will be returned in place of the current default return val configured for this path-toolkit instance.
+```javascript
+var data = {
+    foo: {
+        a: {
+          one: 1,
+          two: 2
+        },
+        b: '123.456',
+        c: 'three'
+    }
+};
+
+// native javascript
+// One way of avoiding an exception if 'foo.a' doesn't exist in 'data'.
+// The results can be unclear from reading the code when some of the values may be boolean.
+var x = data.foo && foo.a && foo.a.one;
+
+// Another way that's more reliable and provides a default value.
+// This method is more verbose, especially for deep objects. Also might be confused by booleans.
+var y = (data.foo && data.foo.a) ? foo.a.one : 0;
+
+// Using the new optional chaining operator to prevent exceptions, but there is no default value.
+var z = data.foo?.a?.one;
+
+// Path-toolkit
+var value1 = ptk.getWithDefault(data, 'foo.a.one', 0); // returns 0 if any part of the path is invalid
+var value2 = ptk.getWithDefault(data, 'foo.obj', {});  // returns an empty object if "foo.obj" doesn't exist
+```
+
 ### set
 ```javascript
 var result1 = ptk.set(obj, path, newVal);
@@ -262,6 +298,8 @@ Does a seep scan through the data object, executing a `===` test on each node ag
 
 **Note:** Object keys are sorted in processing, so repeated calls to `find` should produce identical results.
 
+**Warning:** `find` will not safely process objects with circular references, resulting in a stack overflow exception. For a safe, though slightly slower, alternative, see `findSafe` below.
+
 ```javascript
 var data = {
     foo: {
@@ -271,6 +309,34 @@ var data = {
 };
 ptk.find(data, 'b'); // 'foo.bar.1'
 ptk.find(data, 'b', 'all'); // ['foo.bar.1','xyz']
+```
+
+### findSafe
+```javascript
+var path = ptk.find(obj, val); // first found path to value
+var allPaths = ptk.findSafe(obj, val, 'all'); // all paths to value
+```
+
+Does a seep scan through the data object, executing a `===` test on each node against the provided value. If the equals test returns true, the path is returned. By default, only one path is returned and the `findSafe` function aborts as soon as it succeeds. If the last argument is 'all', `findSafe` will scan the full object and return all paths with matching values.
+
+When scanning an object, each node is tested for circular references. If such a reference is found, `findSafe` will throw an Error with the text "Circular object provided." and will immediately halt. Code using this method should wrap `findSafe` inside a try-catch.
+
+`findSafe` returns a path that is compliant with the current options. If a keypath segment includes special characters, it will be quoted with the current "singlequote" container character, and that quote will be escaped in the segment if it appears.
+
+**Note:** Object keys are sorted in processing, so repeated calls to `findSafe` should produce identical results.
+
+```javascript
+var data = {
+    foo: {
+        bar: ['a','b','c']
+    },
+    xyz: 'b'
+};
+data.foo.bar[3] = data.foo; // a circular reference is created
+
+ptk.find(data, 'b', 'all'); // results in a stack overflow exception, program will halt
+
+ptk.findSafe(data, 'b', 'all'); // Throws an Error
 ```
 
 ### escape
@@ -323,6 +389,7 @@ The default options are as follows:
     cache: true,
     force: false,
     simple: false,
+    defaultReturnVal: undefined,
     separators: {
         '.': {
             'exec': 'property'
@@ -414,6 +481,13 @@ In many cases, the more advanced PathToolkit features are not necessary and only
 **NOTE:** When "simple" mode is **disabled**, the full set of default characters will be restored. Calling `setSimpleOff()` is nearly equivalent to calling `resetOptions()` except that the "cache" and "force" options are not affected by `setSimpleOff()`. Also, the property separator character will be reset to the default "." character when simple mode is disabled. The same is true for `setSimple(false)`.
 
 Clears the cache to force all paths to be re-evaluated with the new path syntax.
+
+#### setDefaultReturnVal
+```javascript
+ptk.setDefaultReturnVal(0);  // sets the default return value to zero
+ptk.setDefaultReturnVal({}); // sets the default return value to an empty object
+```
+Replaces the default value returned by `get` when that method resolves to a value that is undefined.
 
 #### setSeparatorProperty
 ```javascript
