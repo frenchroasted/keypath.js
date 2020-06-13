@@ -1092,10 +1092,11 @@ var PathToolkit = function(options){
     var scanForValue = function(obj, val, savePath, path, isCircularCb){
         var i, len, more, keys, prop;
 
-        path = path ? path : '';
-
-        if(typeof isCircularCb !== $UNDEFINED && path){
-            if(isCircularCb(obj, path)){
+        if (typeof path === $UNDEFINED){
+            path = '';
+        }
+        else if (typeof isCircularCb !== $UNDEFINED){
+            if (isCircularCb(obj, path)){
                 throw new Error('Circular object provided. Path at "' + path + '" makes a loop.');
             }
         }
@@ -1108,7 +1109,7 @@ var PathToolkit = function(options){
         else if (Array.isArray(obj)){
             len = obj.length;
             for(i = 0; i < len; i++){
-              more = scanForValue(obj[i], val, savePath, path ? path + propertySeparator + i : i, isCircularCb);
+              more = scanForValue(obj[i], val, savePath, path === '' ? i : path + propertySeparator + i, isCircularCb);
                 // Call `scanForValue` recursively
                 // Halt if that recursive call returned "false"
                 if (!more){ return; }
@@ -1128,7 +1129,7 @@ var PathToolkit = function(options){
                     if (allSpecialsRegEx.test(prop)){
                         prop = quoteString(singlequote, prop);
                     }
-                    more = scanForValue(obj[keys[i]], val, savePath, path ? path + propertySeparator + prop : prop, isCircularCb);
+                    more = scanForValue(obj[keys[i]], val, savePath, path === '' ? prop : path + propertySeparator + prop, isCircularCb);
                     if (!more){ return; }
                 }
             }
