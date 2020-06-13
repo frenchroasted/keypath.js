@@ -361,7 +361,7 @@ describe( 'PathToolkit', function(){
             var str = 'propA.concat(@"xxx",@"yyy")';
             expect(ptk.get(data, str)).to.equal(data.propA.concat('xxx','yyy'));
         } );
-        
+
         it( 'should allow plain property array notation', function(){
             var str = 'accounts.0.ary[0],[1]';
             var ary = [];
@@ -712,6 +712,16 @@ describe( 'PathToolkit', function(){
             expect(ptk.find(data, val, 'many').sort().join(',')).to.equal('accounts.1.checking.repeat,accounts.1.test1');
         });
 
+        it( 'should return a valid path when first segment of path is a falsy value', function(){
+            var d = [
+              {prop1: {letters: 'abc'}},
+              {prop2: {letters: 'def'}}
+            ];
+            var val = d[0].prop1.letters;
+            expect(ptk.find(d, val)).to.equal('0.prop1.letters');
+            expect(ptk.get(d, ptk.find(d, val))).to.equal(val);
+        });
+
     });
 
     describe( 'findSafe', function(){
@@ -741,7 +751,7 @@ describe( 'PathToolkit', function(){
             badData.one.three[2].four = badData.one;
             expect(function(){ptk.findSafe(badData, 3, 'all');}).to.throw(Error, 'Circular object provided');
         });
-        
+
         it( 'should not throw an error if internal references are not circular', function(){
             var complexData = {
                 one: {
@@ -1355,5 +1365,5 @@ describe( 'PathToolkit', function(){
     });
     // });
 
-        
+
 } );
