@@ -1091,7 +1091,7 @@ var PathToolkit = function(options){
      */
     var scanForValue = function(obj, val, savePath, path, isCircularCb){
         var i, len, more, keys, prop;
-console.log('scan for, path', val, path);
+
         if (typeof path === $UNDEFINED){
             path = '';
         }
