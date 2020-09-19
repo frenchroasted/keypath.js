@@ -220,8 +220,8 @@ ptk.get(data, 'foo.b.indexOf(@".")');     // 3
 
 ### getWithDefault
 ```javascript
-var val1 = ptk.get(obj, path, defaultReturnVal);
-var val2 = ptk.get(obj, path, defaultReturnVal, arg1, arg2,..., argN);
+var val1 = ptk.getWithDefault(obj, path, defaultReturnVal);
+var val2 = ptk.getWithDefault(obj, path, defaultReturnVal, arg1, arg2,..., argN);
 ```
 
 `getWithDefault` behaves exactly the same as `get`. When the resolved value is undefined, either because of an invalid path or because `undefined` is the value resolved by the path, the value in the `defaultReturnVal` argument will be returned in place of the current default return val configured for this path-toolkit instance.
