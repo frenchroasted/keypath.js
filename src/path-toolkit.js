@@ -64,6 +64,16 @@ var wildCardMatch = function(template, str){
 };
 
 /**
+ * Returns true, if given key is included in the blacklisted
+ * keys.
+ * @param {String} key key for check, string.
+ * @returns {Boolean}.
+ */
+function isPrototypePolluted(key) {
+  return ['__proto__', 'prototype', 'constructor'].includes(key);
+}
+
+/**
  * Inspect input value and determine whether it is an Object or not.
  * Values of undefined and null will return "false", otherwise
  * must be of type "object" or "function".
@@ -1035,7 +1045,10 @@ var PathToolkit = function(options){
                     obj[tk[i]] = {};
                 }
             }
-            obj = obj[tk[i++]];
+            if (!isPrototypePolluted(tk[i])) {
+              obj = obj[tk[i]];
+            }
+            i++;
         }
         return obj;
     };
