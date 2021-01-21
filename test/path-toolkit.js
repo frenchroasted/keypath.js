@@ -667,6 +667,16 @@ describe( 'PathToolkit', function(){
             expect(result).to.be.true;
             expect(ary.join(',')).to.equal('NEW,NEW,NEW');
         });
+
+        it('should prevent prototype pollution', function() {
+          var str = '__proto__.polluted';
+          var obj = {};
+          var result = ptk.set(obj, str, 'Yes, its polluted.');
+          expect(result).to.be.true;
+          expect(obj.polluted).to.be.equal('Yes, its polluted.');
+          expect({}.polluted).to.not.be.equal('Yes, its polluted.');
+          expect({}.polluted).to.be.equal(undefined);
+        })
     });
 
     describe( 'find', function(){
